@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotel Desk - Hệ Thống Quản Lý Khách Sạn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="mark">HD</div>
+      <div>
+        <strong>Hotel Desk</strong>
+        <small>Hệ thống quản lý phòng khách sạn</small>
+      </div>
+    </div>
+    <button id="addButton" class="primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Thêm phòng mới
+    </button>
+  </header>
+
+  <main>
+    <section class="intro">
+      <div>
+        <p class="eyebrow">HOTEL MANAGEMENT SYSTEM</p>
+        <h1>Quản lý phòng<br><em>hiện đại & tự động.</em></h1>
+        <p class="lead">Theo dõi trạng thái phòng, bảng giá dịch vụ và loại phòng trên một giao diện thống nhất.</p>
+      </div>
+      <div class="stat">
+        <span id="roomCount">0</span>
+        <small>phòng hiện có</small>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="search-box">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="search" placeholder="Tìm theo số phòng hoặc mô tả phòng...">
+      </div>
+      <select id="statusFilter">
+        <option value="">Tất cả trạng thái</option>
+        <option value="AVAILABLE">🟢 Phòng trống (Available)</option>
+        <option value="OCCUPIED">🟡 Đang có khách (Occupied)</option>
+        <option value="MAINTENANCE">🔴 Đang bảo trì (Maintenance)</option>
+      </select>
+    </section>
+
+    <section id="roomGrid" class="course-grid"></section>
+  </main>
+
+  <dialog id="roomDialog">
+    <form id="roomForm">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">ROOM SELECTOR & EDITOR</p>
+          <h2 id="dialogTitle">Thêm phòng khách sạn</h2>
+        </div>
+        <button type="button" id="closeButton" class="icon" aria-label="Đóng">&times;</button>
+      </div>
+      
+      <div class="dialog-body">
+        <input type="hidden" id="roomId">
+        
+        <div class="field">
+          <label for="roomTemplateSelect">Chọn phòng mẫu từ danh sách</label>
+          <select id="roomTemplateSelect">
+            <option value="">-- Chọn loại phòng từ danh sách mẫu --</option>
+            <option value="P101" data-type="SINGLE" data-price="500000" data-desc="Phòng đơn tiêu chuẩn, giường 1.4m, hướng thành phố.">Phòng đơn Standard (P101 - 500,000đ/đêm)</option>
+            <option value="P202" data-type="DOUBLE" data-price="850000" data-desc="Phòng đôi cao cấp, 2 giường đơn hoặc 1 giường đôi lớn, ban công thoáng mát.">Phòng đôi Superior (P202 - 850,000đ/đêm)</option>
+            <option value="P303" data-type="SUITE" data-price="1800000" data-desc="Phòng Suite gia đình sang trọng, có phòng khách riêng và bồn tắm panorama.">Phòng Executive Suite (P303 - 1,800,000đ/đêm)</option>
+            <option value="P501" data-type="VIP" data-price="4500000" data-desc="Penthouse VIP thượng hạng, tầm nhìn toàn cảnh biển, phục vụ butler 24/7.">Penthouse VIP (P501 - 4,500,000đ/đêm)</option>
+            <option value="P206" data-type="DOUBLE" data-price="950000" data-desc="Phòng đôi Deluxe hướng biển trực diện, minibar miễn phí.">Phòng đôi Deluxe SeaView (P206 - 950,000đ/đêm)</option>
+            <option value="P308" data-type="SUITE" data-price="2800000" data-desc="Presidential Suite hoàng gia, nội thất dát vàng, phòng họp riêng.">Presidential Suite (P308 - 2,800,000đ/đêm)</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="roomNumber">Số / Mã phòng</label>
+            <input required id="roomNumber" readonly placeholder="Chọn từ danh sách trên">
+          </div>
+          <div class="field">
+            <label for="roomType">Loại phòng</label>
+            <select id="roomType" required>
+              <option value="SINGLE">Single (Phòng đơn)</option>
+              <option value="DOUBLE">Double (Phòng đôi)</option>
+              <option value="SUITE">Suite (Căn hộ)</option>
+              <option value="VIP">VIP (Cao cấp)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="pricePerNight">Giá phòng / Đêm (VNĐ)</label>
+          <select id="pricePerNight" required>
+            <option value="500000">500,000 VNĐ / đêm</option>
+            <option value="850000">850,000 VNĐ / đêm</option>
+            <option value="950000">950,000 VNĐ / đêm</option>
+            <option value="1800000">1,800,000 VNĐ / đêm</option>
+            <option value="2800000">2,800,000 VNĐ / đêm</option>
+            <option value="4500000">4,500,000 VNĐ / đêm</option>
+          </select>
+        </div>
+        
+        <div class="field">
+          <label for="description">Mô tả phòng</label>
+          <textarea id="description" readonly placeholder="Mô tả tiện nghi phòng..."></textarea>
+        </div>
+        
+        <div class="field">
+          <label for="status">Trạng thái phòng</label>
+          <select id="status">
+            <option value="AVAILABLE">🟢 Phòng trống (Available)</option>
+            <option value="OCCUPIED">🟡 Đang có khách (Occupied)</option>
+            <option value="MAINTENANCE">🔴 Đang bảo trì (Maintenance)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="actions">
+        <button type="button" id="cancelButton" class="btn-secondary">Hủy</button>
+        <button type="submit" class="primary">Lưu thông tin phòng</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
