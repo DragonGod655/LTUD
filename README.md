@@ -135,3 +135,43 @@ sequenceDiagram
     deactivate Controller
 ```
 
+---
+
+## 📖 Mô Tả Chi Tiết Kiến Trúc & Luồng Nghiệp Vụ (Dạng Văn Bản)
+
+Dưới đây là phần diễn giải chi tiết toàn bộ cấu trúc hệ thống và luồng dữ liệu bằng văn bản để dễ dàng đọc, tra cứu và thuyết trình:
+
+### 🏛️ 1. Cấu Trúc 4 Tầng Hệ Thống (4-Layer Architecture)
+
+* **Tầng 1: Giao Diện Người Dùng (Frontend Client Layer)**
+  * **Thành phần**: `src/main/resources/static/` (`index.html`, `app.js`, `style.css`).
+  * **Vai trò**: Giao diện Lễ tân dạng *Glassmorphic Dark Mode*, cho phép tìm kiếm phòng, lọc theo trạng thái, điền modal chọn mẫu phòng tự động và thực hiện các thao tác thêm/sửa/xóa phòng.
+  * **Tương tác**: Gửi các HTTP Request (`GET`, `POST`, `PUT`, `DELETE`) chứa payload JSON đến Backend qua Fetch API và nhận phản hồi (Response) để cập nhật giao diện không cần reload trang.
+
+* **Tầng 2: RESTful API Controller (Spring Web Layer)**
+  * **Thành phần**: `RoomController.java` (`@RestController` tại `/api/rooms`).
+  * **Vai trò**: Tiếp nhận các yêu cầu HTTP từ Frontend, thực hiện xác thực và kiểm tra tính hợp lệ dữ liệu đầu vào (`@Valid` trên DTO), sau đó điều phối cuộc gọi xuống tầng Service.
+  * **Kết quả**: Trả về các mã trạng thái HTTP chuẩn (`200 OK`, `201 Created`, `204 No Content`, `400 Bad Request`, `404 Not Found`).
+
+* **Tầng 3: Xử Lý Nghiệp Vụ (Business Logic & Domain Layer)**
+  * **Thành phần**: `RoomService.java` (`@Service`), các đối tượng DTO (`RoomRequest`, `RoomResponse`) và Enums (`RoomType`, `RoomStatus`).
+  * **Vai trò**: Chứa toàn bộ quy tắc nghiệp vụ khách sạn (ví dụ: kiểm tra trùng lặp số phòng `existsByRoomNumber`, ánh xạ giữa DTO và Entity, bắt ngoại lệ `ResponseStatusException`).
+
+* **Tầng 4: Lưu Trữ & Cơ Sở Dữ Liệu (Persistence & Database Layer)**
+  * **Thành phần**: `RoomRepository.java` (`JpaRepository`), Hibernate ORM và CSDL (H2 / PostgreSQL).
+  * **Cấu trúc Bảng CSDL**:
+    1. **Bảng `ROOMS`**: Lưu thông tin phòng khách sạn (`id`, `room_number` - duy nhất, `room_type`, `price_per_night`, `status`, `description`).
+    2. **Bảng `GUESTS`**: Lưu thông tin khách hàng (`id`, `full_name`, `phone`, `email`).
+    3. **Bảng `BOOKINGS`**: Lưu thông tin đặt phòng (liên kết `guest_id` và `room_id`, ngày `check_in` / `check_out`).
+
+---
+
+### 🔄 2. Diễn Giải Luồng Xử Lý Khi Thêm Phòng Mới (Step-by-Step Flow)
+
+1. **Khởi tạo**: Lễ tân điền thông tin phòng trên giao diện web và bấm nút **"Lưu Phòng"**.
+2. **Gửi Request**: JavaScript gửi yêu cầu `POST /api/rooms` kèm dữ liệu dạng JSON.
+3. **Xác thực dữ liệu**: `RoomController` nhận request và kiểm tra dữ liệu đầu vào theo Annotation trong `RoomRequest`.
+4. **Kiểm tra trùng lặp**: `RoomService` gọi `RoomRepository.existsByRoomNumber()` để đảm bảo số phòng chưa tồn tại trong hệ thống.
+5. **Ghi CSDL**: Nếu hợp lệ, `RoomRepository` chuyển đổi sang SQL `INSERT INTO rooms ...` để lưu vào CSDL (H2/PostgreSQL).
+6. **Phản hồi**: Hệ thống trả về đối tượng `RoomResponse` kèm mã HTTP `201 Created`, Frontend nhận kết quả và tự động làm mới danh sách phòng trên màn hình.
+
