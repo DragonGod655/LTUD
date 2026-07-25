@@ -47,44 +47,61 @@ mvn spring-boot:run
 
 ---
 
-## 📊 Mô Tả Kiến Trúc & Luồng Hệ Thống (Bản Văn Bản)
+## 📊 Mô Tả Kiến Trúc & Luồng Hệ Thống (GitHub Visual Diagram)
 
-### 1. Sơ Đồ Tổng Quan Kiến Trúc 4 Tầng (System Architecture Text Diagram)
+### 1. Sơ Đồ Tổng Quan Kiến Trúc 4 Tầng (System Architecture Diagram)
 
-```text
-+-----------------------------------------------------------------------------------+
-|                        1. FRONTEND / CLIENT LAYER (Lễ Tân UI)                     |
-|  - Giao diện HTML5/CSS3 (Glassmorphic Dark Mode) + Fetch API JavaScript ES6       |
-|  - Chức năng: Lọc trạng thái phòng, Modal chọn phòng mẫu, Thao tác CRUD          |
-+-----------------------------------------------------------------------------------+
-                                          |
-                      (1) HTTP Request / Payload JSON (200 OK / 201 Created)
-                                          v
-+-----------------------------------------------------------------------------------+
-|                     2. RESTFUL API CONTROLLER LAYER (Spring Web)                  |
-|  - Class: RoomController (@RestController tại /api/rooms)                         |
-|  - Endpoint: GET, POST, PUT, DELETE /api/rooms                                    |
-+-----------------------------------------------------------------------------------+
-                                          |
-                              (2) DTO Data Transfer
-                                          v
-+-----------------------------------------------------------------------------------+
-|                3. BUSINESS LOGIC & DOMAIN LAYER (Service & DTOs)                  |
-|  - Class: RoomService (@Service)                                                  |
-|  - Logic: Kiểm tra trùng số phòng, Map DTO <-> Entity, Bắt lỗi Exception          |
-|  - Objects: RoomRequest (@Valid), RoomResponse, RoomType, RoomStatus              |
-+-----------------------------------------------------------------------------------+
-                                          |
-                               (3) JPA Operations
-                                          v
-+-----------------------------------------------------------------------------------+
-|                 4. PERSISTENCE & DATABASE LAYER (Spring Data JPA)                 |
-|  - Interface: RoomRepository (existsByRoomNumber, findByRoomNumber...)            |
-|  - Engine: Hibernate ORM / JDBC Driver                                            |
-|  - Tables: ROOMS (PK: id, UNIQUE: room_number)                                    |
-|            GUESTS (PK: id, full_name, phone, email)                               |
-|            BOOKINGS (PK: id, FK: guest_id, FK: room_id)                           |
-+-----------------------------------------------------------------------------------+
+GitHub sẽ tự động hiển thị sơ đồ trực quan dưới đây từ mã nguồn Mermaid:
+
+```mermaid
+flowchart TD
+    %% LAYER 1: FRONTEND CLIENT LAYER
+    subgraph Layer1["1. FRONTEND / CLIENT LAYER (Giao Diện Lễ Tân)"]
+        UI["💻 Giao Diện Lễ Tân (index.html / app.js)<br/>• Tìm kiếm & Lọc trạng thái phòng<br/>• Modal chọn phòng mẫu tự động<br/>• Thao tác CRUD không cần gõ chữ"]
+    end
+
+    %% LAYER 2: REST CONTROLLER LAYER
+    subgraph Layer2["2. RESTFUL API CONTROLLER LAYER (Spring Web)"]
+        direction TB
+        CTL["🎮 RoomController (@RestController)<br/>Base URL: /api/rooms"]
+        EP1["GET /api/rooms - Lấy danh sách phòng"]
+        EP2["GET /api/rooms/{id} - Lấy chi tiết phòng"]
+        EP3["POST /api/rooms - Thêm phòng mới"]
+        EP4["PUT /api/rooms/{id} - Cập nhật phòng"]
+        EP5["DELETE /api/rooms/{id} - Xóa phòng"]
+        CTL --- EP1 & EP2 & EP3 & EP4 & EP5
+    end
+
+    %% LAYER 3: SERVICE & DOMAIN BUSINESS LAYER
+    subgraph Layer3["3. BUSINESS LOGIC & DOMAIN LAYER (Spring Service & DTOs)"]
+        SVC["⚙️ RoomService (@Service)<br/>• Kiểm tra trùng lặp số phòng<br/>• Ánh xạ DTO <-> Room Entity<br/>• Xử lý ngoại lệ ResponseStatusException"]
+        DTO["📦 Data Transfer Objects (DTOs)<br/>• RoomRequest (@Valid / @NotBlank / @DecimalMin)<br/>• RoomResponse"]
+        ENUMS["🏷️ Enums Khách Sạn<br/>• RoomType: SINGLE | DOUBLE | SUITE | VIP<br/>• RoomStatus: AVAILABLE | OCCUPIED | MAINTENANCE"]
+        SVC --- DTO & ENUMS
+    end
+
+    %% LAYER 4: PERSISTENCE & DATABASE LAYER
+    subgraph Layer4["4. PERSISTENCE & DATABASE LAYER (Spring Data JPA / H2 / PostgreSQL)"]
+        REPO["🗄️ RoomRepository (@Repository / JPA)<br/>• existsByRoomNumber()<br/>• findByRoomNumberContainingOrDescriptionContaining()"]
+        ORM["🔥 Hibernate ORM / JDBC Driver"]
+        
+        subgraph SchemaDB["Cơ Sở Dữ Liệu Khách Sạn (Database Tables)"]
+            T_ROOMS[("📋 Bảng ROOMS<br/>- id (PK)<br/>- room_number (UNIQUE)<br/>- room_type (SINGLE/DOUBLE/SUITE/VIP)<br/>- price_per_night<br/>- status (AVAILABLE/OCCUPIED/MAINTENANCE)")]
+            T_GUESTS[("👤 Bảng GUESTS<br/>- id (PK)<br/>- full_name<br/>- phone<br/>- email")]
+            T_BOOKINGS[("📅 Bảng BOOKINGS<br/>- id (PK)<br/>- guest_id (FK -> GUESTS)<br/>- room_id (FK -> ROOMS)<br/>- check_in / check_out")]
+            T_GUESTS -- "1..N (Đăng ký đặt phòng)" --> T_BOOKINGS
+            T_ROOMS -- "1..N (Được đặt)" --> T_BOOKINGS
+        end
+        
+        REPO --> ORM
+        ORM --> SchemaDB
+    end
+
+    %% INTER-LAYER CONNECTIVITY
+    UI -- "HTTP Request (JSON Payload)" --> CTL
+    CTL -- "Trả kết quả JSON (200 OK / 201 Created)" --> UI
+    CTL -- "Truyền DTO Dữ Liệu" --> SVC
+    SVC -- "Thực Thi Nghiệp Vụ JPA" --> REPO
 ```
 
 ---
@@ -100,26 +117,34 @@ mvn spring-boot:run
 
 ---
 
-### 🔄 3. Diễn Giải Luồng Xử Lý Khi Thêm Phòng Mới (Step-by-Step Flow)
+### 🔄 3. Sơ Đồ Tuần Tự Luồng Xử Lý Khi Thêm Phòng Mới (Sequence Diagram)
 
-```text
-[Lễ Tân UI] --(1) POST /api/rooms (JSON)--> [RoomController]
-                                                  |
-                                       (2) validate input & pass DTO
-                                                  v
-                                            [RoomService]
-                                                  |
-                                  (3) existsByRoomNumber(number)?
-                                                  v
-                                           [RoomRepository]
-                                                  |
-                                   (4) INSERT INTO rooms VALUES(...)
-                                                  v
-                                           [Database (H2/Postgres)]
-                                                  |
-                                     (5) Trả về Saved Entity
-                                                  v
-[Lễ Tân UI] <-- (6) 201 Created (JSON) <--- [RoomController]
+```mermaid
+sequenceDiagram
+    autonumber
+    actor LT as 💻 Lễ Tân UI
+    participant CTL as 🎮 RoomController
+    participant SVC as ⚙️ RoomService
+    participant REPO as 🗄️ RoomRepository
+    participant DB as 💾 Database (H2/Postgres)
+
+    LT->>CTL: POST /api/rooms (JSON Payload)
+    CTL->>CTL: Validate dữ liệu (@Valid RoomRequest)
+    CTL->>SVC: createRoom(RoomRequest)
+    SVC->>REPO: existsByRoomNumber(roomNumber)
+    alt Số phòng đã tồn tại
+        REPO-->>SVC: true
+        SVC-->>CTL: Ném ngoại lệ ResponseStatusException (400 Bad Request)
+        CTL-->>LT: Trả về HTTP 400 Bad Request (Thông báo trùng phòng)
+    else Số phòng chưa tồn tại
+        REPO-->>SVC: false
+        SVC->>REPO: save(Room Entity)
+        REPO->>DB: INSERT INTO rooms VALUES(...)
+        DB-->>REPO: Trả về Saved Entity
+        REPO-->>SVC: Trả về Room Entity
+        SVC-->>CTL: Trả về RoomResponse DTO
+        CTL-->>LT: Trả về HTTP 201 Created (JSON Response)
+    end
 ```
 
 #### Các Bước Thực Hiện Chi Tiết:
