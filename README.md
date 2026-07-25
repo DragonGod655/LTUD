@@ -49,7 +49,20 @@ mvn spring-boot:run
 
 ## 📊 Mô Tả Kiến Trúc & Luồng Hệ Thống (GitHub Visual Diagram)
 
-### 1. Sơ Đồ Tổng Quan Kiến Trúc 4 Tầng (System Architecture Diagram)
+### 1. Sơ Đồ Kiến Trúc Luồng Tổng Quan (High-Level Architecture Diagram)
+
+```mermaid
+flowchart LR
+    U["💻 Lễ Tân / Quản Lý"] --> FE["🌐 Frontend (Hotel Desk UI)<br/>HTML5 / CSS3 / JS ES6"]
+    FE -- "HTTP Request (JSON)" --> API["⚡ Spring Boot REST API<br/>RoomController (/api/rooms)"]
+    API -- "DTO Data Transfer" --> S["⚙️ Business Service Layer<br/>RoomService"]
+    S -- "JPA Entity Operations" --> R["🗄️ Persistence Layer<br/>RoomRepository"]
+    R -- "SQL Reads / Writes" --> DB[("💾 Database Engine<br/>H2 / PostgreSQL")]
+```
+
+---
+
+### 2. Sơ Đồ Chi Tiết Kiến Trúc 4 Tầng (Detailed 4-Layer Architecture Diagram)
 
 GitHub sẽ tự động hiển thị sơ đồ trực quan dưới đây từ mã nguồn Mermaid:
 
@@ -106,7 +119,41 @@ flowchart TD
 
 ---
 
-### 🏛️ 2. Chi Tiết Các Tầng Hệ Thống (Text Breakdown)
+### 🗄️ 3. Sơ Đồ Cơ Sở Dữ Liệu ERD (Entity Relationship Diagram)
+
+```mermaid
+erDiagram
+    ROOMS ||--o{ BOOKINGS : "has_bookings"
+    GUESTS ||--o{ BOOKINGS : "makes_bookings"
+
+    ROOMS {
+        bigint id PK
+        varchar room_number UK "Số phòng (Duy nhất)"
+        varchar room_type "Loại phòng (SINGLE/DOUBLE/SUITE/VIP)"
+        decimal price_per_night "Giá tiền mỗi đêm"
+        varchar status "Trạng thái (AVAILABLE/OCCUPIED/MAINTENANCE)"
+        text description "Mô tả chi tiết phòng"
+    }
+
+    GUESTS {
+        bigint id PK
+        varchar full_name "Họ và tên khách hàng"
+        varchar phone "Số điện thoại liên hệ"
+        varchar email "Địa chỉ Email"
+    }
+
+    BOOKINGS {
+        bigint id PK
+        bigint guest_id FK "Mã khách hàng"
+        bigint room_id FK "Mã phòng"
+        timestamp check_in "Thời gian nhận phòng"
+        timestamp check_out "Thời gian trả phòng"
+    }
+```
+
+---
+
+### 🏛️ 4. Chi Tiết Các Tầng Hệ Thống (Text Breakdown)
 
 | Tầng | Thành Phần Chính | Chức Năng & Nhiệm Vụ |
 | :--- | :--- | :--- |
@@ -117,7 +164,7 @@ flowchart TD
 
 ---
 
-### 🔄 3. Sơ Đồ Tuần Tự Luồng Xử Lý Khi Thêm Phòng Mới (Sequence Diagram)
+### 🔄 5. Sơ Đồ Tuần Tự Luồng Xử Lý Khi Thêm Phòng Mới (Sequence Diagram)
 
 ```mermaid
 sequenceDiagram
