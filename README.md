@@ -47,9 +47,49 @@ mvn spring-boot:run
 
 ---
 
-## 📊 Mô Tả Kiến Trúc & Luồng Hệ Thống (GitHub Visual Diagram)
+## 📊 Mô Tả Kiến Trúc & Luồng Hệ Thống
 
-### 1. Sơ Đồ Kiến Trúc Luồng Tổng Quan (High-Level Architecture Diagram)
+### 1. Sơ Đồ Tổng Quan Kiến Trúc 4 Tầng (System Architecture Text Diagram)
+
+```text
++-----------------------------------------------------------------------------------+
+|                        1. FRONTEND / CLIENT LAYER (Lễ Tân UI)                     |
+|  - Giao diện HTML5/CSS3 (Glassmorphic Dark Mode) + Fetch API JavaScript ES6       |
+|  - Chức năng: Lọc trạng thái phòng, Modal chọn phòng mẫu, Thao tác CRUD          |
++-----------------------------------------------------------------------------------+
+                                          |
+                      (1) HTTP Request / Payload JSON (200 OK / 201 Created)
+                                          v
++-----------------------------------------------------------------------------------+
+|                     2. RESTFUL API CONTROLLER LAYER (Spring Web)                  |
+|  - Class: RoomController (@RestController tại /api/rooms)                         |
+|  - Endpoint: GET, POST, PUT, DELETE /api/rooms                                    |
++-----------------------------------------------------------------------------------+
+                                          |
+                              (2) DTO Data Transfer
+                                          v
++-----------------------------------------------------------------------------------+
+|                3. BUSINESS LOGIC & DOMAIN LAYER (Service & DTOs)                  |
+|  - Class: RoomService (@Service)                                                  |
+|  - Logic: Kiểm tra trùng số phòng, Map DTO <-> Entity, Bắt lỗi Exception          |
+|  - Objects: RoomRequest (@Valid), RoomResponse, RoomType, RoomStatus              |
++-----------------------------------------------------------------------------------+
+                                          |
+                               (3) JPA Operations
+                                          v
++-----------------------------------------------------------------------------------+
+|                 4. PERSISTENCE & DATABASE LAYER (Spring Data JPA)                 |
+|  - Interface: RoomRepository (existsByRoomNumber, findByRoomNumber...)            |
+|  - Engine: Hibernate ORM / JDBC Driver                                            |
+|  - Tables: ROOMS (PK: id, UNIQUE: room_number)                                    |
+|            GUESTS (PK: id, full_name, phone, email)                               |
+|            BOOKINGS (PK: id, FK: guest_id, FK: room_id)                           |
++-----------------------------------------------------------------------------------+
+```
+
+---
+
+### 2. Sơ Đồ Kiến Trúc Luồng Tổng Quan (High-Level Architecture Diagram)
 
 ```mermaid
 flowchart LR
@@ -62,7 +102,7 @@ flowchart LR
 
 ---
 
-### 2. Sơ Đồ Chi Tiết Kiến Trúc 4 Tầng (Detailed 4-Layer Architecture Diagram)
+### 3. Sơ Đồ Chi Tiết Kiến Trúc 4 Tầng (Detailed 4-Layer Architecture Diagram)
 
 GitHub sẽ tự động hiển thị sơ đồ trực quan dưới đây từ mã nguồn Mermaid:
 
@@ -119,7 +159,7 @@ flowchart TD
 
 ---
 
-### 🗄️ 3. Sơ Đồ Cơ Sở Dữ Liệu ERD (Entity Relationship Diagram)
+### 🗄️ 4. Sơ Đồ Cơ Sở Dữ Liệu ERD (Entity Relationship Diagram)
 
 ```mermaid
 erDiagram
@@ -153,7 +193,7 @@ erDiagram
 
 ---
 
-### 🏛️ 4. Chi Tiết Các Tầng Hệ Thống (Text Breakdown)
+### 🏛️ 5. Chi Tiết Các Tầng Hệ Thống (Text Breakdown)
 
 | Tầng | Thành Phần Chính | Chức Năng & Nhiệm Vụ |
 | :--- | :--- | :--- |
@@ -164,7 +204,7 @@ erDiagram
 
 ---
 
-### 🔄 5. Sơ Đồ Tuần Tự Luồng Xử Lý Khi Thêm Phòng Mới (Sequence Diagram)
+### 🔄 6. Sơ Đồ Tuần Tự Luồng Xử Lý Khi Thêm Phòng Mới (Sequence Diagram)
 
 ```mermaid
 sequenceDiagram
