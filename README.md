@@ -47,19 +47,21 @@ mvn spring-boot:run
 
 ---
 
-## 📊 Sơ Đồ Hợp Nhất Hệ Thống (Master Combined Mermaid Diagram)
+## 📊 Sơ Đồ Kiến Trúc & Luồng Hệ Thống (Mermaid Diagrams)
+
+### 1. Sơ Đồ Tổng Quan Kiến Trúc Hệ Thống (Master Combined Diagram)
 
 ```mermaid
 flowchart TD
     %% LAYER 1: FRONTEND CLIENT LAYER
     subgraph Layer1["1. FRONTEND / CLIENT LAYER (Giao Diện Lễ Tân)"]
-        UI["💻 Giao Diện Lễ Tân (index.html / app.js)\n• Tìm kiếm & Lọc trạng thái phòng\n• Modal chọn phòng mẫu tự động\n• Thao tác CRUD không cần gõ chữ"]
+        UI["💻 Giao Diện Lễ Tân (index.html / app.js)<br/>• Tìm kiếm & Lọc trạng thái phòng<br/>• Modal chọn phòng mẫu tự động<br/>• Thao tác CRUD không cần gõ chữ"]
     end
 
     %% LAYER 2: REST CONTROLLER LAYER
     subgraph Layer2["2. RESTFUL API CONTROLLER LAYER (Spring Web)"]
         direction TB
-        CTL["🎮 RoomController (@RestController)\nBase URL: /api/rooms"]
+        CTL["🎮 RoomController (@RestController)<br/>Base URL: /api/rooms"]
         EP1["GET /api/rooms - Lấy danh sách phòng"]
         EP2["GET /api/rooms/{id} - Lấy chi tiết phòng"]
         EP3["POST /api/rooms - Thêm phòng mới"]
@@ -70,21 +72,21 @@ flowchart TD
 
     %% LAYER 3: SERVICE & DOMAIN BUSINESS LAYER
     subgraph Layer3["3. BUSINESS LOGIC & DOMAIN LAYER (Spring Service & DTOs)"]
-        SVC["⚙️ RoomService (@Service)\n• Kiểm tra trùng lặp số phòng\n• Ánh xạ DTO <-> Room Entity\n• Xử lý ngoại lệ ResponseStatusException"]
-        DTO["📦 Data Transfer Objects (DTOs)\n• RoomRequest (@Valid / @NotBlank / @DecimalMin)\n• RoomResponse"]
-        ENUMS["🏷️ Enums Khách Sạn\n• RoomType: SINGLE | DOUBLE | SUITE | VIP\n• RoomStatus: AVAILABLE | OCCUPIED | MAINTENANCE"]
+        SVC["⚙️ RoomService (@Service)<br/>• Kiểm tra trùng lặp số phòng<br/>• Ánh xạ DTO <-> Room Entity<br/>• Xử lý ngoại lệ ResponseStatusException"]
+        DTO["📦 Data Transfer Objects (DTOs)<br/>• RoomRequest (@Valid / @NotBlank)<br/>• RoomResponse"]
+        ENUMS["🏷️ Enums Khách Sạn<br/>• RoomType: SINGLE | DOUBLE | SUITE | VIP<br/>• RoomStatus: AVAILABLE | OCCUPIED | MAINTENANCE"]
         SVC --- DTO & ENUMS
     end
 
     %% LAYER 4: PERSISTENCE & DATABASE LAYER
     subgraph Layer4["4. PERSISTENCE & DATABASE LAYER (Spring Data JPA / H2 / PostgreSQL)"]
-        REPO["🗄️ RoomRepository (@Repository / JPA)\n• existsByRoomNumber()\n• findByRoomNumberContainingOrDescriptionContaining()"]
+        REPO["🗄️ RoomRepository (@Repository / JPA)<br/>• existsByRoomNumber()<br/>• findByRoomNumberContainingOrDescriptionContaining()"]
         ORM["🔥 Hibernate ORM / JDBC Driver"]
         
         subgraph SchemaDB["Cơ Sở Dữ Liệu Khách Sạn (Database Tables)"]
-            T_ROOMS[("📋 Bảng ROOMS\n- id (PK)\n- room_number (UNIQUE)\n- room_type (SINGLE/DOUBLE/SUITE/VIP)\n- price_per_night\n- status (AVAILABLE/OCCUPIED/MAINTENANCE)")]
-            T_GUESTS[("👤 Bảng GUESTS\n- id (PK)\n- full_name\n- phone\n- email")]
-            T_BOOKINGS[("📅 Bảng BOOKINGS\n- id (PK)\n- guest_id (FK -> GUESTS)\n- room_id (FK -> ROOMS)\n- check_in / check_out")]
+            T_ROOMS[("📋 Bảng ROOMS<br/>- id (PK)<br/>- room_number (UNIQUE)<br/>- room_type<br/>- price_per_night<br/>- status")]
+            T_GUESTS[("👤 Bảng GUESTS<br/>- id (PK)<br/>- full_name<br/>- phone<br/>- email")]
+            T_BOOKINGS[("📅 Bảng BOOKINGS<br/>- id (PK)<br/>- guest_id (FK -> GUESTS)<br/>- room_id (FK -> ROOMS)<br/>- check_in / check_out")]
             T_GUESTS -- "1..N (Đăng ký đặt phòng)" --> T_BOOKINGS
             T_ROOMS -- "1..N (Được đặt)" --> T_BOOKINGS
         end
@@ -99,3 +101,37 @@ flowchart TD
     CTL -- "Truyền DTO Dữ Liệu" --> SVC
     SVC -- "Thực Thi Nghiệp Vụ JPA" --> REPO
 ```
+
+### 2. Sơ Đồ Tuần Tự Luồng Tạo / Thêm Phòng Mới (Sequence Diagram)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor LeTan as 👤 Lễ Tân (Frontend UI)
+    participant Controller as 🎮 RoomController
+    participant Service as ⚙️ RoomService
+    participant Repo as 🗄️ RoomRepository
+    participant DB as 💾 Database (H2/PostgreSQL)
+
+    LeTan->>Controller: POST /api/rooms (RoomRequest JSON)
+    activate Controller
+    Controller->>Service: createRoom(RoomRequest)
+    activate Service
+    Service->>Repo: existsByRoomNumber(roomNumber)
+    activate Repo
+    Repo-->>Service: boolean (false)
+    deactivate Repo
+    Service->>Repo: save(RoomEntity)
+    activate Repo
+    Repo->>DB: INSERT INTO rooms VALUES(...)
+    activate DB
+    DB-->>Repo: Saved Room Entity
+    deactivate DB
+    Repo-->>Service: Saved Room Entity
+    deactivate Repo
+    Service-->>Controller: RoomResponse DTO
+    deactivate Service
+    Controller-->>LeTan: 201 Created (RoomResponse JSON)
+    deactivate Controller
+```
+
