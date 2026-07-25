@@ -47,131 +47,87 @@ mvn spring-boot:run
 
 ---
 
-## 📊 Sơ Đồ Kiến Trúc & Luồng Hệ Thống (Mermaid Diagrams)
+## 📊 Mô Tả Kiến Trúc & Luồng Hệ Thống (Bản Văn Bản)
 
-### 1. Sơ Đồ Tổng Quan Kiến Trúc Hệ Thống (Master Combined Diagram)
+### 1. Sơ Đồ Tổng Quan Kiến Trúc 4 Tầng (System Architecture Text Diagram)
 
-```mermaid
-flowchart TD
-    %% LAYER 1: FRONTEND CLIENT LAYER
-    subgraph Layer1["1. FRONTEND / CLIENT LAYER (Giao Diện Lễ Tân)"]
-        UI["💻 Giao Diện Lễ Tân (index.html / app.js)<br/>• Tìm kiếm & Lọc trạng thái phòng<br/>• Modal chọn phòng mẫu tự động<br/>• Thao tác CRUD không cần gõ chữ"]
-    end
-
-    %% LAYER 2: REST CONTROLLER LAYER
-    subgraph Layer2["2. RESTFUL API CONTROLLER LAYER (Spring Web)"]
-        direction TB
-        CTL["🎮 RoomController (@RestController)<br/>Base URL: /api/rooms"]
-        EP1["GET /api/rooms - Lấy danh sách phòng"]
-        EP2["GET /api/rooms/{id} - Lấy chi tiết phòng"]
-        EP3["POST /api/rooms - Thêm phòng mới"]
-        EP4["PUT /api/rooms/{id} - Cập nhật phòng"]
-        EP5["DELETE /api/rooms/{id} - Xóa phòng"]
-        CTL --- EP1 & EP2 & EP3 & EP4 & EP5
-    end
-
-    %% LAYER 3: SERVICE & DOMAIN BUSINESS LAYER
-    subgraph Layer3["3. BUSINESS LOGIC & DOMAIN LAYER (Spring Service & DTOs)"]
-        SVC["⚙️ RoomService (@Service)<br/>• Kiểm tra trùng lặp số phòng<br/>• Ánh xạ DTO <-> Room Entity<br/>• Xử lý ngoại lệ ResponseStatusException"]
-        DTO["📦 Data Transfer Objects (DTOs)<br/>• RoomRequest (@Valid / @NotBlank)<br/>• RoomResponse"]
-        ENUMS["🏷️ Enums Khách Sạn<br/>• RoomType: SINGLE | DOUBLE | SUITE | VIP<br/>• RoomStatus: AVAILABLE | OCCUPIED | MAINTENANCE"]
-        SVC --- DTO & ENUMS
-    end
-
-    %% LAYER 4: PERSISTENCE & DATABASE LAYER
-    subgraph Layer4["4. PERSISTENCE & DATABASE LAYER (Spring Data JPA / H2 / PostgreSQL)"]
-        REPO["🗄️ RoomRepository (@Repository / JPA)<br/>• existsByRoomNumber()<br/>• findByRoomNumberContainingOrDescriptionContaining()"]
-        ORM["🔥 Hibernate ORM / JDBC Driver"]
-        
-        subgraph SchemaDB["Cơ Sở Dữ Liệu Khách Sạn (Database Tables)"]
-            T_ROOMS[("📋 Bảng ROOMS<br/>- id (PK)<br/>- room_number (UNIQUE)<br/>- room_type<br/>- price_per_night<br/>- status")]
-            T_GUESTS[("👤 Bảng GUESTS<br/>- id (PK)<br/>- full_name<br/>- phone<br/>- email")]
-            T_BOOKINGS[("📅 Bảng BOOKINGS<br/>- id (PK)<br/>- guest_id (FK -> GUESTS)<br/>- room_id (FK -> ROOMS)<br/>- check_in / check_out")]
-            T_GUESTS -- "1..N (Đăng ký đặt phòng)" --> T_BOOKINGS
-            T_ROOMS -- "1..N (Được đặt)" --> T_BOOKINGS
-        end
-        
-        REPO --> ORM
-        ORM --> SchemaDB
-    end
-
-    %% INTER-LAYER CONNECTIVITY
-    UI -- "HTTP Request (JSON Payload)" --> CTL
-    CTL -- "Trả kết quả JSON (200 OK / 201 Created)" --> UI
-    CTL -- "Truyền DTO Dữ Liệu" --> SVC
-    SVC -- "Thực Thi Nghiệp Vụ JPA" --> REPO
-```
-
-### 2. Sơ Đồ Tuần Tự Luồng Tạo / Thêm Phòng Mới (Sequence Diagram)
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor LeTan as 👤 Lễ Tân (Frontend UI)
-    participant Controller as 🎮 RoomController
-    participant Service as ⚙️ RoomService
-    participant Repo as 🗄️ RoomRepository
-    participant DB as 💾 Database (H2/PostgreSQL)
-
-    LeTan->>Controller: POST /api/rooms (RoomRequest JSON)
-    activate Controller
-    Controller->>Service: createRoom(RoomRequest)
-    activate Service
-    Service->>Repo: existsByRoomNumber(roomNumber)
-    activate Repo
-    Repo-->>Service: boolean (false)
-    deactivate Repo
-    Service->>Repo: save(RoomEntity)
-    activate Repo
-    Repo->>DB: INSERT INTO rooms VALUES(...)
-    activate DB
-    DB-->>Repo: Saved Room Entity
-    deactivate DB
-    Repo-->>Service: Saved Room Entity
-    deactivate Repo
-    Service-->>Controller: RoomResponse DTO
-    deactivate Service
-    Controller-->>LeTan: 201 Created (RoomResponse JSON)
-    deactivate Controller
+```text
++-----------------------------------------------------------------------------------+
+|                        1. FRONTEND / CLIENT LAYER (Lễ Tân UI)                     |
+|  - Giao diện HTML5/CSS3 (Glassmorphic Dark Mode) + Fetch API JavaScript ES6       |
+|  - Chức năng: Lọc trạng thái phòng, Modal chọn phòng mẫu, Thao tác CRUD          |
++-----------------------------------------------------------------------------------+
+                                          |
+                      (1) HTTP Request / Payload JSON (200 OK / 201 Created)
+                                          v
++-----------------------------------------------------------------------------------+
+|                     2. RESTFUL API CONTROLLER LAYER (Spring Web)                  |
+|  - Class: RoomController (@RestController tại /api/rooms)                         |
+|  - Endpoint: GET, POST, PUT, DELETE /api/rooms                                    |
++-----------------------------------------------------------------------------------+
+                                          |
+                              (2) DTO Data Transfer
+                                          v
++-----------------------------------------------------------------------------------+
+|                3. BUSINESS LOGIC & DOMAIN LAYER (Service & DTOs)                  |
+|  - Class: RoomService (@Service)                                                  |
+|  - Logic: Kiểm tra trùng số phòng, Map DTO <-> Entity, Bắt lỗi Exception          |
+|  - Objects: RoomRequest (@Valid), RoomResponse, RoomType, RoomStatus              |
++-----------------------------------------------------------------------------------+
+                                          |
+                               (3) JPA Operations
+                                          v
++-----------------------------------------------------------------------------------+
+|                 4. PERSISTENCE & DATABASE LAYER (Spring Data JPA)                 |
+|  - Interface: RoomRepository (existsByRoomNumber, findByRoomNumber...)            |
+|  - Engine: Hibernate ORM / JDBC Driver                                            |
+|  - Tables: ROOMS (PK: id, UNIQUE: room_number)                                    |
+|            GUESTS (PK: id, full_name, phone, email)                               |
+|            BOOKINGS (PK: id, FK: guest_id, FK: room_id)                           |
++-----------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 📖 Mô Tả Chi Tiết Kiến Trúc & Luồng Nghiệp Vụ (Dạng Văn Bản)
+### 🏛️ 2. Chi Tiết Các Tầng Hệ Thống (Text Breakdown)
 
-Dưới đây là phần diễn giải chi tiết toàn bộ cấu trúc hệ thống và luồng dữ liệu bằng văn bản để dễ dàng đọc, tra cứu và thuyết trình:
-
-### 🏛️ 1. Cấu Trúc 4 Tầng Hệ Thống (4-Layer Architecture)
-
-* **Tầng 1: Giao Diện Người Dùng (Frontend Client Layer)**
-  * **Thành phần**: `src/main/resources/static/` (`index.html`, `app.js`, `style.css`).
-  * **Vai trò**: Giao diện Lễ tân dạng *Glassmorphic Dark Mode*, cho phép tìm kiếm phòng, lọc theo trạng thái, điền modal chọn mẫu phòng tự động và thực hiện các thao tác thêm/sửa/xóa phòng.
-  * **Tương tác**: Gửi các HTTP Request (`GET`, `POST`, `PUT`, `DELETE`) chứa payload JSON đến Backend qua Fetch API và nhận phản hồi (Response) để cập nhật giao diện không cần reload trang.
-
-* **Tầng 2: RESTful API Controller (Spring Web Layer)**
-  * **Thành phần**: `RoomController.java` (`@RestController` tại `/api/rooms`).
-  * **Vai trò**: Tiếp nhận các yêu cầu HTTP từ Frontend, thực hiện xác thực và kiểm tra tính hợp lệ dữ liệu đầu vào (`@Valid` trên DTO), sau đó điều phối cuộc gọi xuống tầng Service.
-  * **Kết quả**: Trả về các mã trạng thái HTTP chuẩn (`200 OK`, `201 Created`, `204 No Content`, `400 Bad Request`, `404 Not Found`).
-
-* **Tầng 3: Xử Lý Nghiệp Vụ (Business Logic & Domain Layer)**
-  * **Thành phần**: `RoomService.java` (`@Service`), các đối tượng DTO (`RoomRequest`, `RoomResponse`) và Enums (`RoomType`, `RoomStatus`).
-  * **Vai trò**: Chứa toàn bộ quy tắc nghiệp vụ khách sạn (ví dụ: kiểm tra trùng lặp số phòng `existsByRoomNumber`, ánh xạ giữa DTO và Entity, bắt ngoại lệ `ResponseStatusException`).
-
-* **Tầng 4: Lưu Trữ & Cơ Sở Dữ Liệu (Persistence & Database Layer)**
-  * **Thành phần**: `RoomRepository.java` (`JpaRepository`), Hibernate ORM và CSDL (H2 / PostgreSQL).
-  * **Cấu trúc Bảng CSDL**:
-    1. **Bảng `ROOMS`**: Lưu thông tin phòng khách sạn (`id`, `room_number` - duy nhất, `room_type`, `price_per_night`, `status`, `description`).
-    2. **Bảng `GUESTS`**: Lưu thông tin khách hàng (`id`, `full_name`, `phone`, `email`).
-    3. **Bảng `BOOKINGS`**: Lưu thông tin đặt phòng (liên kết `guest_id` và `room_id`, ngày `check_in` / `check_out`).
+| Tầng | Thành Phần Chính | Chức Năng & Nhiệm Vụ |
+| :--- | :--- | :--- |
+| **1. Client Layer** | `index.html`, `app.js`, `style.css` | Hiển thị giao diện lễ tân Dark Mode, gửi AJAX request đến Backend và làm mới UI. |
+| **2. Controller Layer** | `RoomController.java` | Tiếp nhận REST API request (`/api/rooms`), validate dữ liệu đầu vào và trả về HTTP Status. |
+| **3. Business Layer** | `RoomService.java`, DTOs, Enums | Thực thi logic nghiệp vụ, kiểm tra trùng lặp số phòng, chuyển đổi DTO và Entity. |
+| **4. Database Layer** | `RoomRepository.java`, H2/PostgreSQL | Lưu trữ dữ liệu lâu dài vào các bảng `ROOMS`, `GUESTS`, `BOOKINGS` qua Hibernate JPA. |
 
 ---
 
-### 🔄 2. Diễn Giải Luồng Xử Lý Khi Thêm Phòng Mới (Step-by-Step Flow)
+### 🔄 3. Diễn Giải Luồng Xử Lý Khi Thêm Phòng Mới (Step-by-Step Flow)
 
+```text
+[Lễ Tân UI] --(1) POST /api/rooms (JSON)--> [RoomController]
+                                                  |
+                                       (2) validate input & pass DTO
+                                                  v
+                                            [RoomService]
+                                                  |
+                                  (3) existsByRoomNumber(number)?
+                                                  v
+                                           [RoomRepository]
+                                                  |
+                                   (4) INSERT INTO rooms VALUES(...)
+                                                  v
+                                           [Database (H2/Postgres)]
+                                                  |
+                                     (5) Trả về Saved Entity
+                                                  v
+[Lễ Tân UI] <-- (6) 201 Created (JSON) <--- [RoomController]
+```
+
+#### Các Bước Thực Hiện Chi Tiết:
 1. **Khởi tạo**: Lễ tân điền thông tin phòng trên giao diện web và bấm nút **"Lưu Phòng"**.
 2. **Gửi Request**: JavaScript gửi yêu cầu `POST /api/rooms` kèm dữ liệu dạng JSON.
 3. **Xác thực dữ liệu**: `RoomController` nhận request và kiểm tra dữ liệu đầu vào theo Annotation trong `RoomRequest`.
 4. **Kiểm tra trùng lặp**: `RoomService` gọi `RoomRepository.existsByRoomNumber()` để đảm bảo số phòng chưa tồn tại trong hệ thống.
 5. **Ghi CSDL**: Nếu hợp lệ, `RoomRepository` chuyển đổi sang SQL `INSERT INTO rooms ...` để lưu vào CSDL (H2/PostgreSQL).
 6. **Phản hồi**: Hệ thống trả về đối tượng `RoomResponse` kèm mã HTTP `201 Created`, Frontend nhận kết quả và tự động làm mới danh sách phòng trên màn hình.
+
 
