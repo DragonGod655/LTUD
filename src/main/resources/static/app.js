@@ -5,7 +5,14 @@ const dialog = $('roomDialog');
 async function loadRooms() {
   const query = $('search').value.trim();
   const response = await fetch(`/api/rooms${query ? `?search=${encodeURIComponent(query)}` : ''}`);
-  state.rooms = await response.json();
+  const result = await response.json();
+  if (result.success && result.data) {
+    state.rooms = result.data.content || result.data;
+  } else if (Array.isArray(result)) {
+    state.rooms = result;
+  } else {
+    state.rooms = [];
+  }
   render();
 }
 

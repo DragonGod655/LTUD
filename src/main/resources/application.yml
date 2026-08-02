@@ -1,30 +1,17 @@
 spring:
   application:
-    name: course-management
-  datasource:
-    url: jdbc:h2:mem:courses;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    name: hotel-management
+  profiles:
+    active: dev
   jpa:
-    hibernate:
-      ddl-auto: create-drop
-    defer-datasource-initialization: true
     open-in-view: false
-  h2:
-    console:
-      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
 server:
   port: 8080
----
-spring:
-  config:
-    activate:
-      on-profile: postgres
-  datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/courses}
-    username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:postgres}
-  jpa:
-    hibernate:
-      ddl-auto: validate

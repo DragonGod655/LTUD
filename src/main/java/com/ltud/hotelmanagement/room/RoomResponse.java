@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class RoomResponse {
-
     private Long id;
     private String roomNumber;
     private RoomType roomType;
@@ -14,80 +13,64 @@ public class RoomResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static RoomResponse fromEntity(Room room) {
-        RoomResponse response = new RoomResponse();
-        response.setId(room.getId());
-        response.setRoomNumber(room.getRoomNumber());
-        response.setRoomType(room.getRoomType());
-        response.setDescription(room.getDescription());
-        response.setPricePerNight(room.getPricePerNight());
-        response.setStatus(room.getStatus());
-        response.setCreatedAt(room.getCreatedAt());
-        response.setUpdatedAt(room.getUpdatedAt());
-        return response;
+    public RoomResponse() {
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
+    public RoomResponse(Long id, String roomNumber, RoomType roomType, String description, BigDecimal pricePerNight, RoomStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
-    }
-
-    public String getRoomNumber() {
-        return roomNumber;
-    }
-
-    public void setRoomNumber(String roomNumber) {
         this.roomNumber = roomNumber;
-    }
-
-    public RoomType getRoomType() {
-        return roomType;
-    }
-
-    public void setRoomType(RoomType roomType) {
         this.roomType = roomType;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
         this.description = description;
-    }
-
-    public BigDecimal getPricePerNight() {
-        return pricePerNight;
-    }
-
-    public void setPricePerNight(BigDecimal pricePerNight) {
         this.pricePerNight = pricePerNight;
-    }
-
-    public RoomStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RoomStatus status) {
         this.status = status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public static RoomResponse fromEntity(Room room) {
+        if (room == null) return null;
+        return new Builder()
+                .id(room.getId())
+                .roomNumber(room.getRoomNumber())
+                .roomType(room.getRoomType())
+                .description(room.getDescription())
+                .pricePerNight(room.getPricePerNight())
+                .status(room.getStatus())
+                .createdAt(room.getCreatedAt())
+                .updatedAt(room.getUpdatedAt())
+                .build();
+    }
+
+    public static class Builder {
+        private Long id;
+        private String roomNumber;
+        private RoomType roomType;
+        private String description;
+        private BigDecimal pricePerNight;
+        private RoomStatus status;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+
+        public Builder id(Long id) { this.id = id; return this; }
+        public Builder roomNumber(String roomNumber) { this.roomNumber = roomNumber; return this; }
+        public Builder roomType(RoomType roomType) { this.roomType = roomType; return this; }
+        public Builder description(String description) { this.description = description; return this; }
+        public Builder pricePerNight(BigDecimal pricePerNight) { this.pricePerNight = pricePerNight; return this; }
+        public Builder status(RoomStatus status) { this.status = status; return this; }
+        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+        public Builder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
+
+        public RoomResponse build() {
+            return new RoomResponse(id, roomNumber, roomType, description, pricePerNight, status, createdAt, updatedAt);
+        }
+    }
+
+    public Long getId() { return id; }
+    public String getRoomNumber() { return roomNumber; }
+    public RoomType getRoomType() { return roomType; }
+    public String getDescription() { return description; }
+    public BigDecimal getPricePerNight() { return pricePerNight; }
+    public RoomStatus getStatus() { return status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

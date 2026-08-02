@@ -1,0 +1,256 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Hotel Management API Collection",
+		"description": "Postman collection cho Hệ thống Quản lý Khách sạn (Spring Boot REST API)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Quản Lý Phòng (Rooms)",
+			"item": [
+				{
+					"name": "GET - Danh sách phòng (Có Phân trang & Tìm kiếm)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/rooms?page=0&size=10&status=AVAILABLE",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "rooms"],
+							"query": [
+								{"key": "page", "value": "0"},
+								{"key": "size", "value": "10"},
+								{"key": "status", "value": "AVAILABLE"}
+							]
+						}
+					}
+				},
+				{
+					"name": "GET - Chi tiết phòng theo ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/rooms/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "rooms", "1"]
+						}
+					}
+				},
+				{
+					"name": "POST - Thêm mới phòng",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomNumber\": \"P601\",\n  \"roomType\": \"VIP\",\n  \"description\": \"Penthouse VIP thượng hạng, view biển 360 độ.\",\n  \"pricePerNight\": 3500000,\n  \"status\": \"AVAILABLE\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/rooms",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "rooms"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Cập nhật thông tin phòng",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"roomNumber\": \"P101\",\n  \"roomType\": \"SINGLE\",\n  \"description\": \"Phòng đơn đã nâng cấp TV 55 inch và minibar.\",\n  \"pricePerNight\": 600000,\n  \"status\": \"AVAILABLE\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/rooms/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "rooms", "1"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Xóa phòng theo ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/rooms/5",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "rooms", "5"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Quản Lý Khách Hàng (Guests)",
+			"item": [
+				{
+					"name": "GET - Danh sách khách hàng",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/guests",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "guests"]
+						}
+					}
+				},
+				{
+					"name": "POST - Thêm khách hàng mới",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"Phạm Minh Khoa\",\n  \"phone\": \"0933445566\",\n  \"email\": \"khoa.pham@example.com\",\n  \"identityCard\": \"079123456789\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/guests",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "guests"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Cập nhật thông tin khách hàng",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"Phạm Minh Khoa (Đã cập nhật)\",\n  \"phone\": \"0933445566\",\n  \"email\": \"khoa.updated@example.com\",\n  \"identityCard\": \"079123456789\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/guests/1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "guests", "1"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Xóa khách hàng",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/guests/3",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "guests", "3"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Quản Lý Đặt Phòng (Bookings)",
+			"item": [
+				{
+					"name": "GET - Danh sách đơn đặt phòng",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/bookings",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "bookings"]
+						}
+					}
+				},
+				{
+					"name": "POST - Tạo đơn đặt phòng mới",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"guestId\": 1,\n  \"roomId\": 2,\n  \"checkInDate\": \"2026-08-15T14:00:00\",\n  \"checkOutDate\": \"2026-08-18T12:00:00\",\n  \"note\": \"Khách yêu cầu phòng tầng cao, giường lớn.\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/bookings",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "bookings"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Làm thủ tục Nhận Phòng (Check-in)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/bookings/1/check-in",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "bookings", "1", "check-in"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Làm thủ tục Trả Phòng (Check-out)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/bookings/1/check-out",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "bookings", "1", "check-out"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Hủy đơn đặt phòng (Cancel)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/bookings/1/cancel",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "bookings", "1", "cancel"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,16 @@
+$kind: http-request
+url: http://localhost:8080/api/bookings
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "guestId": 1,
+      "roomId": 2,
+      "checkInDate": "2026-08-15T14:00:00",
+      "checkOutDate": "2026-08-18T12:00:00",
+      "note": "Khách yêu cầu phòng tầng cao, giường lớn."
+    }
+order: 2000

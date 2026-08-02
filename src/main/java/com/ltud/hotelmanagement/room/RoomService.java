@@ -1,11 +1,14 @@
 package com.ltud.hotelmanagement.room;
 
-import org.springframework.http.HttpStatus;
+import com.ltud.hotelmanagement.common.PageResponse;
+import com.ltud.hotelmanagement.exception.DuplicateResourceException;
+import com.ltud.hotelmanagement.exception.ResourceNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @Service
 public class RoomService {
@@ -17,27 +20,34 @@ public class RoomService {
     }
 
     @Transactional(readOnly = true)
-    public List<RoomResponse> getAllRooms(String search) {
-        List<Room> rooms;
-        if (search != null && !search.trim().isEmpty()) {
-            rooms = roomRepository.findByRoomNumberContainingIgnoreCaseOrDescriptionContainingIgnoreCase(search.trim(), search.trim());
+    public PageResponse<RoomResponse> getAllRooms(String search, RoomStatus status, int page, int size, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Room> roomPage;
+        if (status != null) {
+            roomPage = roomRepository.findByStatus(status, pageable);
+        } else if (search != null && !search.trim().isEmpty()) {
+            roomPage = roomRepository.findByRoomNumberContainingIgnoreCaseOrDescriptionContainingIgnoreCase(search.trim(), search.trim(), pageable);
         } else {
-            rooms = roomRepository.findAll();
+            roomPage = roomRepository.findAll(pageable);
         }
-        return rooms.stream().map(RoomResponse::fromEntity).toList();
+
+        Page<RoomResponse> responsePage = roomPage.map(RoomResponse::fromEntity);
+        return PageResponse.from(responsePage);
     }
 
     @Transactional(readOnly = true)
     public RoomResponse getRoomById(Long id) {
         Room room = roomRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy phòng với ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phòng với ID: " + id));
         return RoomResponse.fromEntity(room);
     }
 
     @Transactional
     public RoomResponse createRoom(RoomRequest request) {
         if (roomRepository.existsByRoomNumber(request.getRoomNumber())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số phòng " + request.getRoomNumber() + " đã tồn tại trong hệ thống");
+            throw new DuplicateResourceException("Số phòng " + request.getRoomNumber() + " đã tồn tại trong hệ thống");
         }
 
         Room room = new Room(
@@ -55,10 +65,10 @@ public class RoomService {
     @Transactional
     public RoomResponse updateRoom(Long id, RoomRequest request) {
         Room room = roomRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy phòng với ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy phòng với ID: " + id));
 
         if (roomRepository.existsByRoomNumberAndIdNot(request.getRoomNumber(), id)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số phòng " + request.getRoomNumber() + " đã trùng với phòng khác");
+            throw new DuplicateResourceException("Số phòng " + request.getRoomNumber() + " đã trùng với phòng khác");
         }
 
         room.setRoomNumber(request.getRoomNumber());
@@ -76,7 +86,7 @@ public class RoomService {
     @Transactional
     public void deleteRoom(Long id) {
         if (!roomRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy phòng với ID: " + id);
+            throw new ResourceNotFoundException("Không tìm thấy phòng với ID: " + id);
         }
         roomRepository.deleteById(id);
     }

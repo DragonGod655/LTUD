@@ -1,0 +1,15 @@
+$kind: http-request
+url: http://localhost:8080/api/guests
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "fullName": "Phạm Minh Khoa",
+      "phone": "0933445566",
+      "email": "khoa.pham@example.com",
+      "identityCard": "079123456789"
+    }
+order: 2000

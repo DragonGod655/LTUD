@@ -1,0 +1,16 @@
+$kind: http-request
+url: http://localhost:8080/api/rooms
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "roomNumber": "P601",
+      "roomType": "VIP",
+      "description": "Penthouse VIP thượng hạng, view biển 360 độ.",
+      "pricePerNight": 3500000,
+      "status": "AVAILABLE"
+    }
+order: 3000

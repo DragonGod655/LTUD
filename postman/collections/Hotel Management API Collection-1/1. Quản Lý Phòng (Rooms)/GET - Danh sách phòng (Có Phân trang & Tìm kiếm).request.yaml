@@ -1,0 +1,8 @@
+$kind: http-request
+url: http://localhost:8080/api/rooms?page=0&size=10&status=AVAILABLE
+method: GET
+queryParams:
+  page: "0"
+  size: "10"
+  status: AVAILABLE
+order: 1000
